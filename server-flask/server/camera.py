@@ -2,7 +2,8 @@ import cv2
 
 class Camera(object):
     def __init__(self):
-        self.video = cv2.VideoCapture('rtsp://root:pendule2023@pendule.einet.ad.eivd.ch/axis-media/media.amp')
+        # self.video = cv2.VideoCapture('rtsp://root:pendule2023@pendule.einet.ad.eivd.ch/axis-media/media.amp')
+        self.video = cv2.VideoCapture('rtsp://root:pendule2023@192.168.125.206/axis-media/media.amp')
 
     def __del__(self):
         self.video.release()

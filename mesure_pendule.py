@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import re
 import click
-import threading
 import time
+import json
 
 fig = plt.figure(figsize=(7, 7))
 ax1 = fig.add_subplot(1, 1, 1)
 
+print("Waiting for connection...")
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = '192.168.125.1'
 port = 2090
@@ -26,18 +27,25 @@ circlex = 0
 circley = 0
 r = 0
 
+minX = -1446
+maxX = 1472
+minY = -1584
+maxY = 1630
+circleXcenter = minX + (maxX - minX) / 2
+circleYcenter = minY + (maxY - minY) / 2
 
-def thread_minmax():
-    while (True):
-        xmin, xmax, ymin, ymax = compute_min_max(100)
-        global circlex
-        circlex = xmin + (xmax - xmin) / 2
-        global circley
-        circley = ymin + (ymax - ymin) / 2
-        global r
-        r = np.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2) / 2
-        print("min max computed")
-        time.sleep(10)
+
+# def thread_minmax():
+#     while (True):
+#         xmin, xmax, ymin, ymax = compute_min_max(100)
+#         global circlex
+#         circlex = xmin + (xmax - xmin) / 2
+#         global circley
+#         circley = ymin + (ymax - ymin) / 2
+#         global r
+#         r = np.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2) / 2
+#         print("min max computed")
+#         time.sleep(10)
 
 
 @click.group()
@@ -63,6 +71,16 @@ def minmax(i):
     print(f"Xmin: {xmin}, Xmax: {xmax}, Ymin: {ymin}, Ymax: {ymax}")
 
 
+@cli.command()
+def mesure():
+    data = []
+    for i in range(5):
+        position = receive_data()
+        data.append({"x": position[0][0], "y": position[1][0]})
+    with open('data/data.json', 'w') as outfile:
+        json.dump(data, outfile)
+
+
 def receive_data():
     message = clientsocket.recv(1024)
     message = message.decode('ascii')
@@ -71,7 +89,6 @@ def receive_data():
     x = [float(str[1])]
     xArray.append(x)
     yArray.append(y)
-    print(f"Position: {x}, {y}")
     return x, y
 
 
@@ -88,10 +105,10 @@ def update_plot(i, trace=False):
         circley = ymin + (ymax - ymin) / 2
         r = np.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2) / 2
         ax1.clear()
-    ax1.axis([170, 700, 30, 560])
+    ax1.axis([minX, maxX, minY, maxY])
     circleMinMax = plt.Circle((circley, circlex), r, color='b', fill=False)
     ax1.add_artist(circleMinMax)
-    circleCenter = plt.Circle((432, 292), 20, color='r', fill=False)
+    circleCenter = plt.Circle((circleXcenter, circleYcenter), 50, color='r', fill=False)
     if circleCenter.contains_point((y[0], x[0])):
         circleCenter.set_color('g')
         print("In the circle")
