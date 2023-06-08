@@ -1,6 +1,6 @@
 # COMET special parameters
-# ISO linear units : m, m/s, m/s², V, A, s (used in case of interpolation)
-# ISO rotary units : t, t/s, t/s², V, A, s
+# ISO linear units : m, m/s, m/sï¿½, V, A, s (used in case of interpolation)
+# ISO rotary units : t, t/s, t/sï¿½, V, A, s
 
 #include <math.h>
 
@@ -12,13 +12,13 @@ void func0(void){
 }
 
 void func1(void){
-	double T = 7;
-	double amp = 5;
-	double t = T / 4;
-	double d = 2 * amp;
-	double v = d / t;
-	double a = v / t;
-	double pos = ML7.0;
+	float T = 7;
+	float amp = 5;
+	float t = T / 4;
+	float d = 2 * amp;
+	float v = d / t;
+	float a = v / t;
+	float pos = ML7.0;
 	pos += d;
 	X1.0 = iconv(0.002, _upi);
 	X1.1 = iconv(v, _usi);
@@ -26,4 +26,3 @@ void func1(void){
 	MVE.0 = X1.0,X1.1,X1.2; 
 	MVE.0 = ML7.0,X1.1,X1.2;
 }
-
