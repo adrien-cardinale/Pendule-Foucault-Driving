@@ -27,6 +27,7 @@ def thread_mesure(iter):
         position = receive_data()
         t = time.time() - timer
         data.append({"x": position[0][0], "y": position[1][0], "t": t})
+        print(i)
     with open('data/data.json', 'w') as outfile:
         json.dump(data, outfile)
 
@@ -57,9 +58,10 @@ def minmax(i):
 @cli.command()
 @click.option('--iter', default=100, help='Number of iterations')
 def mesure(iter):
+    print("prout")
     thread = threading.Thread(target=thread_mesure, args=(iter,))
-    thread.daemon = True
     thread.start()
+
 
 
 @cli.command()
