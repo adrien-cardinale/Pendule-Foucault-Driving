@@ -74,10 +74,11 @@ def minmax(i):
 @cli.command()
 def mesure():
     data = []
-    for i in range(5):
+    for i in range(200):
         position = receive_data()
         data.append({"x": position[0][0], "y": position[1][0]})
-    with open('data/data.json', 'w') as outfile:
+        print(f"X: {position[0][0]}, Y: {position[1][0]}")
+    with open('data/data.json', 'a') as outfile:
         json.dump(data, outfile)
 
 
