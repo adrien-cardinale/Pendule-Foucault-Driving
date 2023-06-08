@@ -46,7 +46,7 @@ def minmax(i):
 
 @cli.command()
 @click.option('--iter', default=100, help='Number of iterations')
-def mesure():
+def mesure(iter):
     data = []
     timer = time.time()
     for i in range(iter):
@@ -86,12 +86,15 @@ def update_plot(i, trace=False):
     if i % 50 == 0:
         pendule.compute_min_max(100)
         global r
-        r = np.sqrt((pendule.maxX - pendule.minX) ** 2 + (pendule.maxY - pendule.minY) ** 2) / 2
+        r = np.sqrt((pendule.maxX - pendule.minX) ** 2 +
+                    (pendule.maxY - pendule.minY) ** 2) / 2
         ax1.clear()
     ax1.axis([-1700, 1700, -1700, 1700])
-    circleMinMax = plt.Circle((pendule.circleYcenter, pendule.circleXcenter), r, color='b', fill=False)
+    circleMinMax = plt.Circle(
+        (pendule.circleYcenter, pendule.circleXcenter), r, color='b', fill=False)
     ax1.add_artist(circleMinMax)
-    circleCenter = plt.Circle((pendule.circleXcenter, pendule.circleYcenter), 100, color='r', fill=False)
+    circleCenter = plt.Circle(
+        (pendule.circleXcenter, pendule.circleYcenter), 100, color='r', fill=False)
     if circleCenter.contains_point((y[0], x[0])):
         circleCenter.set_color('g')
         print("In the circle")
