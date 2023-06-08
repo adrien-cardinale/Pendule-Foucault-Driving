@@ -45,10 +45,11 @@ def minmax(i):
 
 
 @cli.command()
+@click.option('--iter', default=100, help='Number of iterations')
 def mesure():
     data = []
     timer = time.time()
-    for i in range(200):
+    for i in range(iter):
         position = receive_data()
         t = time.time() - timer
         data.append({"x": position[0][0], "y": position[1][0], "t": t})
