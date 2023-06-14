@@ -1,0 +1,65 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "Pendule/1.0.0": {
+        "dependencies": {
+          "dsa40net": "4.39.129.0"
+        },
+        "runtime": {
+          "Pendule.dll": {}
+        }
+      },
+      "dsa40net/4.39.129.0": {
+        "runtime": {
+          "dsa40net.dll": {
+            "assemblyVersion": "4.39.129.0",
+            "fileVersion": "4.39.129.0"
+          }
+        }
+      },
+      "etb40net/4.39.129.0": {
+        "runtime": {
+          "etb40net.dll": {
+            "assemblyVersion": "4.39.129.0",
+            "fileVersion": "4.39.129.0"
+          }
+        }
+      },
+      "dmd40net/4.39.129.0": {
+        "runtime": {
+          "dmd40net.dll": {
+            "assemblyVersion": "4.39.129.0",
+            "fileVersion": "4.39.129.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Pendule/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "dsa40net/4.39.129.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "etb40net/4.39.129.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "dmd40net/4.39.129.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

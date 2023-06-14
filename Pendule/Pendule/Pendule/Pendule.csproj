@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="dsa40net">
+      <HintPath>..\..\lib\w64\VisualStudio2019\net\release\dsa40net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

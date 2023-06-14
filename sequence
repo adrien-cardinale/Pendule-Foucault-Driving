@@ -8,21 +8,33 @@ void func0(void){
 	RST.0;
 	PWR.0 = 1;
 	IND.0;
-	MVE.0=0.0035,0.0014,0.001;
+	WTM.0;
+	MVE.0=0.0,0.0014,0.0004398,2.5;
+	WTM.0;
+	//PWR.0 = 0;
 }
 
 void func1(void){
-	float T = 7;
-	float amp = 5;
-	float t = T / 4;
-	float d = 2 * amp;
-	float v = d / t;
-	float a = v / t;
-	float pos = ML7.0;
-	pos += d;
-	X1.0 = iconv(0.002, _upi);
-	X1.1 = iconv(v, _usi);
-	X1.2 = iconv(a, _uai);
-	MVE.0 = X1.0,X1.1,X1.2; 
-	MVE.0 = ML7.0,X1.1,X1.2;
+	int i = 0;
+	while(i < 1000){
+		JRT=0.281;				// Jerk time
+   		ACC=0.04965;				// Absolute max acc/deceleration
+		SPD=0.01777;				// Absolute max speed
+		MVE=-0.01;				// Start movement
+		WTM;					// Waits for movement
+		WTT=0.5614;				// Waits for time				// Waits for time
+		MVE=0.01;				// Start movement
+		WTM;					// Waits for movement
+		WTT=0.5614;	
+		i++;
+	}
+	MVE.0=0.0,0.008888,0.01241,0.563;
+}
+
+void func2(void){
+	MVE.0=-0.01,0.008888,0.01241,0.500;
+}
+
+void func3(void){
+	MVE.0=0.01,0.008888,0.01241,0.500;
 }
