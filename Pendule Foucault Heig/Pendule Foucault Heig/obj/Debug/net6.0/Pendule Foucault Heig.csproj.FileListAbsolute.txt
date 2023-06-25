@@ -1,0 +1,19 @@
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.csproj.AssemblyReference.cache
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.AssemblyInfoInputs.cache
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.AssemblyInfo.cs
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.csproj.CoreCompileInputs.cache
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\Pendule Foucault Heig.exe
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\Pendule Foucault Heig.deps.json
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\Pendule Foucault Heig.runtimeconfig.json
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\Pendule Foucault Heig.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\Pendule Foucault Heig.pdb
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\dmd40net.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\dsa40net.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\etb40net.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.csproj.CopyComplete
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\refint\Pendule Foucault Heig.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.pdb
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.genruntimeconfig.cache
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\ref\Pendule Foucault Heig.dll
