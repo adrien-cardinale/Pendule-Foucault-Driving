@@ -11,9 +11,13 @@ namespace Pendule
     internal class Regulateur
     {
         private DsaDrive drv;
+        private DsaAcquisition acq;
+        private int nb_points;
+        private double[] times;
+        private double[] data;
+
         public Regulateur()
         {
-            drv = null;
             drv = new DsaDrive();
         }
         public void OpenBus()
@@ -23,7 +27,7 @@ namespace Pendule
                 Console.WriteLine("Open controller");
                 drv.open("etb:etn://192.168.125.207:0");
                 //Console.WriteLine("Power on");
-                drv.resetErrorEx(0, 10000);
+                //drv.resetErrorEx(0, 10000);
                 //drv.powerOn(10000);
             }
             catch (DsaException exc)
@@ -81,7 +85,7 @@ namespace Pendule
             {
                 int amp = drv.convertInt32FromIso(amplitude, Dsa.MonConv(6, 0));
                 drv.setRegister(DmdData.TYP_USER, 0, 0, amp);
-                drv.executeSequence(1);
+                drv.executeSequence(4);
             }
             catch (DsaException exc)
             {
@@ -130,25 +134,6 @@ namespace Pendule
             Console.ReadLine();
             return;
         }
-        public void TestSequence()
-        {
-            try
-            {
-                //drv.executeSequence(0);
-                int x = drv.getRegister(DmdData.TYP_USER, 0, 0, Dsa.GET_CURRENT);
-                Console.WriteLine($"register value {x}");
-                double value = 0.01;
-                int y = drv.convertInt32FromIso(value, Dsa.MonConv(6, 0));
-                Console.WriteLine($"register value converted from 0.01 = {y}");
-                drv.setRegister(DmdData.TYP_USER, 0, 0, 15);
-                Console.WriteLine("Register value set to 15");
-            }
-            catch (DsaException exc)
-            {
-                error(exc);
-            }
-        }
-
         public void SetSinus(double T, double phase)
         {
             Console.WriteLine("Set sinus");
@@ -169,70 +154,34 @@ namespace Pendule
             }
             Console.WriteLine("Sinus set");
         }
-        public void test()
+        public void Acquisition()
         {
-                double pos_min, pos_max;
+            Console.WriteLine("Acquisition");
+            acq = new DsaAcquisition(drv);
+            acq.reserve();
 
-                DsaDrive drv = null;
-                try
-                {
-                    drv = new DsaDrive();
-                    Console.WriteLine("Open controller");
-                    drv.open("etb:etn://192.168.125.207:0");
+            acq.configTrace(drv, 0, DmdData.TYP_MONITOR, 7, 0);
+            acq.configImmediateTrigger(drv);
+            acq.configWithNbPointsAndTotalTime(1001, 10, DsaAcquisition.SYNCHRO_MODE_NONE);
+            nb_points = acq.getRealNbPoints(drv, 0);
+            times = new double[nb_points];
+            data = new double[nb_points];
+            Console.WriteLine($"Nb points {nb_points}");
 
-                    Console.WriteLine("Power on");
-                    drv.resetErrorEx(0, 10000);
-                    drv.powerOn(10000);
+            acq.acquire(-1);
 
-                    Console.WriteLine("Home");
-                    drv.homingStart(10000);
+            acq.uploadTrace(drv, 0, times, data, Dsa.MonConv(6, 0));
+            Console.WriteLine($"{times}");
 
-                    pos_min = drv.getMinSoftPositionLimit();
-                    pos_max = drv.getMaxSoftPositionLimit();
+            acq.unreserve();
 
-
-                    drv.waitMovement(60000);
-
-                    drv.setProfileVelocity(0, 1.0);
-
-                    drv.setProfileAcceleration(0, 1.0);
-
-                    Console.WriteLine("Move to " + (pos_min * 0.95 + pos_max * 0.05));
-                    drv.setTargetPosition(0, pos_min * 0.95 + pos_max * 0.05);
-                    drv.waitMovement(60000);
-
-                    Console.WriteLine("Move to " + (pos_min * 0.05 + pos_max * 0.95));
-                    drv.setTargetPosition(0, pos_min * 0.05 + pos_max * 0.95);
-                    drv.waitMovement(60000);
-
-                    Console.WriteLine("Power off");
-                    drv.powerOff();
-
-                    drv.close();
-                }
-                catch (DsaException exc)
-                {
-                    exc.diag(drv);
-                    if (drv.isOpen())
-                    {
-                        if (drv.getStatus().isMoving())
-                        {
-                            drv.quickStop(Dsa.QS_PROGRAMMED_DEC, Dsa.QS_BYPASS | Dsa.QS_STOP_SEQUENCE);
-                            drv.waitMovement(60000);
-                        }
-
-                        if (drv.getStatus().isPowerOn())
-                            drv.powerOff(60000);
-
-                        drv.close();
-                    }
-                    Console.WriteLine("Ended with Error...Press a key");
-                    Console.ReadLine();
-                    return;
-                }
-
-                Console.WriteLine("Ended with Success...Press a key");
-                Console.ReadLine();
+            Console.WriteLine("Acquisition done");
+            StreamWriter sw = new StreamWriter("excitation.txt");
+            for (int i = 0; i < nb_points; i++)
+            {
+                sw.WriteLine("{0:f3} ;{1:f5};", times[i], data[i]);
             }
+            sw.Close();
+        }
     }
 }

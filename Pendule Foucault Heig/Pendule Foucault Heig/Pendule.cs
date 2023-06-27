@@ -12,8 +12,8 @@ namespace Pendule
         private Cognex _cognex;
         private Regulateur _regulateur;
 
-        private double _xCenter = -5;
-        private double _yCenter = 11;
+        private double _xCenter = -7;
+        private double _yCenter = 6;
 
         private bool _run = true;
 
@@ -31,9 +31,9 @@ namespace Pendule
         private int _periodeExcitation;
         private int _rayonDetection = 100;
         private double _vMoy;
-        private int _amplitudeNominal = 1500;
+        private int _amplitudeNominal = 1100;
         private double _amplitudeExcitation = 0;
-        private double _amplitudeExcitationNominal = 0.006;
+        private double _amplitudeExcitationNominal = 0.01;
         private double _kp = 2e-6;
 
         private bool changeAmplitude = true;
@@ -93,7 +93,7 @@ namespace Pendule
                     {
                         err = (int)(_amplitudeNominal - _amplitude);
                         _amplitudeExcitation = _amplitudeExcitationNominal + err * _kp;
-                        Thread.Sleep((int)(_periodeExcitation - _rayonDetection / _vMoy));
+                        Thread.Sleep((int)(_periodeExcitation - _rayonDetection / _vMoy - 250));
                         _regulateur.StartExcitation(_amplitudeExcitation);
                         Console.WriteLine($"amplitude = {_amplitude}, erreur = {err}, amplitudeExcitation = {_amplitudeExcitation}");
                         changeAmplitude = false;
@@ -113,7 +113,7 @@ namespace Pendule
                 _cognex.ReadData();
                 _xList.Add(_cognex.posX);
                 _yList.Add(_cognex.posY);
-                if(_xList.Count > 100)
+                if(_xList.Count > 200)
                 {
                     _xMin = _xList.Min();
                     _xMax = _xList.Max();

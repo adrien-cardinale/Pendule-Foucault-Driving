@@ -34,7 +34,8 @@ namespace pendule
             Console.WriteLine("#######################");
             Console.WriteLine("1. Run");
             Console.WriteLine("2. Set sinus");
-            Console.WriteLine("3. Save mesure");
+            Console.WriteLine("3. Save position mesure");
+            Console.WriteLine("4. Save excitation mesure");
             Console.WriteLine("q. Quit");
             Console.WriteLine("#######################\n");
 
@@ -73,6 +74,11 @@ namespace pendule
                         Console.ReadKey();
                         cognex.Stop();
                         Console.WriteLine("Position saved");
+                        break;
+                    case "4":
+                        regulateur.OpenBus();
+                        regulateur.Acquisition();
+                        regulateur.CloseBus();
                         break;
                     case "q":
                         Console.WriteLine("Quit");
