@@ -16,6 +16,24 @@ namespace Pendule
         private double[] times;
         private double[] data;
 
+        public double current
+        {
+            get
+            {
+                return _current;
+            }
+        }
+        private double _current;
+
+        public double position
+        {
+            get
+            {
+                return _position;
+            }
+        }
+        private double _position;
+
         public Regulateur()
         {
             drv = new DsaDrive();
@@ -50,29 +68,40 @@ namespace Pendule
                 error(exc);
             }
         }
-        public void Init()
+        public void Init(double periodeExcitation)
         {
             try
             {
-                drv.executeSequence(0);
-                Thread.Sleep(500);
-                while (drv.getStatus().isMoving())
+                if (drv.getStatusFromDrive().isHomingDone())
                 {
+                    drv.executeSequence(2); // go to start position
+                }
+                else
+                {
+                    drv.executeSequence(0); // init sequence
                     Thread.Sleep(500);
+                    while (drv.getStatus().isMoving())
+                    {
+                        Thread.Sleep(500);
+                    }
+                    int err = drv.getErrorCode();
+                    if (err != 0)
+                    {
+                        Console.WriteLine("Error code: " + drv.getErrorText(err));
+                    }
+                    if (err == 11)
+                    {
+                        //Console.WriteLine("Seq 3");
+                        //drv.executeSequence(3);
+                        //drv.waitMovement(60000);
+                        //Console.WriteLine("Seq 0");
+                        //drv.executeSequence(0);
+                    }
                 }
-                int err = drv.getErrorCode();
-                if (err != 0)
-                {
-                    Console.WriteLine("Error code: " + drv.getErrorText(err));
-                }
-                if (err == 11)
-                {
-                    //Console.WriteLine("Seq 3");
-                    //drv.executeSequence(3);
-                    //drv.waitMovement(60000);
-                    //Console.WriteLine("Seq 0");
-                    //drv.executeSequence(0);
-                }
+                Console.WriteLine("Set periode " + periodeExcitation);
+                int periode = drv.convertInt32FromIso(periodeExcitation/1000, Dsa.PpkConv(204, 0));
+                Console.WriteLine("Periode " + periode);
+                drv.setRegister(DmdData.TYP_PPK, 204, 0, periode);
             }
             catch (DsaException exc)
             {
@@ -83,9 +112,10 @@ namespace Pendule
         {
             try
             {
+                //drv.setRegister(DmdData.TYP_USER, 1, 0, 1);
                 int amp = drv.convertInt32FromIso(amplitude, Dsa.MonConv(6, 0));
                 drv.setRegister(DmdData.TYP_USER, 0, 0, amp);
-                drv.executeSequence(4);
+                drv.executeSequence(1); // excitation sequence
             }
             catch (DsaException exc)
             {
@@ -97,7 +127,8 @@ namespace Pendule
             try
             {
                 //drv.executeCommand(cmd: DmdCommand.PROFILED_MOVE, typ1: DmdData.TYP_IMMEDIATE, par1: 0, Dsa.CONV_AUTO, true, false);
-                drv.executeSequence(2);
+                drv.executeSequence(3);
+                //drv.setRegister(DmdData.TYP_USER, 1, 0, 0);
             }
             catch (DsaException exc)
             {
@@ -162,26 +193,44 @@ namespace Pendule
 
             acq.configTrace(drv, 0, DmdData.TYP_MONITOR, 7, 0);
             acq.configImmediateTrigger(drv);
-            acq.configWithNbPointsAndTotalTime(1001, 10, DsaAcquisition.SYNCHRO_MODE_NONE);
+            //acq.configWithNbPointsAndTotalTime(1001, 10, DsaAcquisition.SYNCHRO_MODE_NONE);
+            acq.configWithSamplingTimeAndTotalTime(0.03, 1800, DsaAcquisition.SYNCHRO_MODE_NONE);
             nb_points = acq.getRealNbPoints(drv, 0);
             times = new double[nb_points];
             data = new double[nb_points];
-            Console.WriteLine($"Nb points {nb_points}");
-
+            //Console.WriteLine($"Nb points {nb_points}");
+            string timeNow = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             acq.acquire(-1);
 
             acq.uploadTrace(drv, 0, times, data, Dsa.MonConv(6, 0));
-            Console.WriteLine($"{times}");
+            //Console.WriteLine($"{times}");
 
             acq.unreserve();
 
-            Console.WriteLine("Acquisition done");
+            //Console.WriteLine("Acquisition done");
             StreamWriter sw = new StreamWriter("excitation.txt");
+            sw.WriteLine(timeNow);
             for (int i = 0; i < nb_points; i++)
             {
-                sw.WriteLine("{0:f3} ;{1:f5};", times[i], data[i]);
+                sw.WriteLine("{0:f3} ,{1:f5};", times[i], data[i]);
             }
             sw.Close();
+            Console.WriteLine("Acquisition done");
+        }
+        public void ReadData()
+        {
+            try
+            {
+                int positionIncr = drv.getRegister(DmdData.TYP_MONITOR, 7, 0, Dsa.GET_CURRENT);
+                _position = drv.convertInt32ToIso(positionIncr, Dsa.MonConv(7, 0));
+                float currentIncr = drv.getRegisterFloat32(DmdData.TYP_MONITOR_FLOAT32, 31, 0, Dsa.GET_CURRENT);
+                _current = drv.convertFloat32ToIso(currentIncr, Dsa.RegConv(DmdData.TYP_MONITOR_FLOAT32, 31, 0));
+                Thread.Sleep(30);
+            }
+            catch(DsaException exc)
+            {
+
+            }
         }
     }
 }

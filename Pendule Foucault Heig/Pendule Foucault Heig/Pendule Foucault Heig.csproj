@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="dmd40net">
       <HintPath>..\..\lib\w64\VisualStudio2019\net\release\dmd40net.dll</HintPath>
     </Reference>

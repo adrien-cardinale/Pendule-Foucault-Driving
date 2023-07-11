@@ -31,54 +31,36 @@ namespace Pendule
         private TcpListener server;
         private Thread thread;
         private bool _run = true;
+        TcpClient client;
+        NetworkStream stream;
         public Cognex(string ip, int port)
         {
             server = new TcpListener(IPAddress.Parse(ip), port);
-            server.Start();
-        }
+            server.Start(); 
+            client = server.AcceptTcpClient();
+            stream = client.GetStream();
 
-        public void Start(string ? filename)
-        {
-            thread = new Thread(Listen);
-            _run = true;
-            thread.Start(filename);
         }
-
-        public void Stop()
-        {
-            _run = false;
-            thread.Join();
-        }
-
-        public void Listen(object fileName)
-        {
-            while (_run)
-            {
-                ReadData();
-                if (fileName != null)
-                {
-                    using (StreamWriter sw = File.AppendText(fileName.ToString()))
-                    {
-                        sw.WriteLine("{0},{1}", _posX, _posY);
-                    }
-                }
-            }
-        }
-
         public void ReadData()
         {
-            TcpClient client = server.AcceptTcpClient();
-            NetworkStream stream = client.GetStream();
-            byte[] buffer = new byte[client.ReceiveBufferSize];
-            int data = stream.Read(buffer, 0, client.ReceiveBufferSize);
-            string chaine = Encoding.ASCII.GetString(buffer, 0, data);
-            string[] values = chaine.Split(',');
+            
+            try
+            {
+                byte[] buffer = new byte[client.ReceiveBufferSize];
 
-            double.TryParse(values[0], out _posX);
-            double.TryParse(values[1], out _posY);
-
-            stream.Close();
-            client.Close();
+                int data = stream.Read(buffer, 0, client.ReceiveBufferSize);
+                string chaine = Encoding.ASCII.GetString(buffer, 0, data);
+                string[] values = chaine.Split(',');
+                double.TryParse(values[0], out _posX);
+                double.TryParse(values[1], out _posY);
+            }
+            catch (System.IO.IOException e)
+            {
+                stream.Close();
+                client.Close();
+                client = server.AcceptTcpClient();
+                stream = client.GetStream();
+            }
         }
     }
 }

@@ -17,3 +17,4 @@ C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pen
 C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.pdb
 C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\Pendule Foucault Heig.genruntimeconfig.cache
 C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\obj\Debug\net6.0\ref\Pendule Foucault Heig.dll
+C:\Users\Pendule\Source\Repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Debug\net6.0\Newtonsoft.Json.dll
