@@ -14,9 +14,21 @@ namespace pendule
         {
             const string serverPath = @"\\192.168.125.1\PenduleShare\";
 
-            Regulateur regulateur = new Regulateur();
-            Cognex cognex = new Cognex("192.168.125.208", 2090);
-            CommandePendule pendule = new CommandePendule(cognex, regulateur, serverPath);
+            //Driver regulateur = new Driver();
+            //VisionSystem cognex = new VisionSystem("192.168.125.208", 2090);
+            PFControl pendule;
+            try
+            {
+                pendule = new PFControl(serverPath);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine("Press any key to exit");
+                Console.ReadKey();
+                Environment.Exit(0);
+                return;
+            }
             
 
 
@@ -28,6 +40,7 @@ namespace pendule
             Console.WriteLine("q. Quit");
             Console.WriteLine("#######################\n");
 
+
             for (; ; )
             {
                 string ? input = Console.ReadLine();
@@ -37,16 +50,12 @@ namespace pendule
                         Console.WriteLine("Run");
                         pendule.Start();
                         Console.WriteLine("Press t to stop");
-                        while (Console.ReadKey(true).Key != ConsoleKey.T)
-                        {
-                        }
+                        while (Console.ReadKey(true).Key != ConsoleKey.T){}
                         pendule.Stop();
                         break; 
                     case "2":
-                        Console.WriteLine("Set sinus");
-                        regulateur.OpenBus();
-                        regulateur.SetSinus(4.5475, Math.PI);
-                        regulateur.CloseBus();
+                        Console.WriteLine("Set sinus in look-up table");
+                        pendule.SetSinus();
                         Console.WriteLine("Sinus set");
                         break;
                     case "q":
