@@ -24,7 +24,6 @@ namespace Pendule
                 }
 
                 string json = r.ReadToEnd();
-                Console.WriteLine(json);
                 var pFConfig = JsonConvert.DeserializeObject<PFConfig>(json);
                 if (pFConfig == null)
                 {
@@ -96,7 +95,9 @@ namespace Pendule
         private bool _waitCenter = true;
         private bool _excitation = false;
 
-        string _serverPath;
+        private string _serverPath;
+
+        private int _offsetDetection = 100;
 
 
 
@@ -254,7 +255,7 @@ namespace Pendule
                 {
                     if (_waitCenter)
                     {
-                        Thread.Sleep((int)(_config.periode + 100));
+                        Thread.Sleep((int)(_config.periode + _offsetDetection));
                         if (_runExcitation)
                         {
                             try
@@ -315,7 +316,6 @@ namespace Pendule
                         {
                             Console.WriteLine("Erreur lors de l'arrêt de l'excitation");
                         }
-                        //_waitCenter = true;
                         
                         i = 0;
                     }else if (_amplitude < _config.nominalAmplitude && !_excitation && _runExcitation)
