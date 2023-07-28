@@ -290,7 +290,6 @@ namespace Pendule
             List<double> _xList = new List<double>();
             List<double> _yList = new List<double>();
             int i = 0;
-            double erreurPhaseMoyenne = 0;
             while (_run)
             {
                 _xList.Add(_cognex.posX);
@@ -323,7 +322,7 @@ namespace Pendule
                         _waitCenter = true;
                         i = 0;
                     }
-                    Console.WriteLine($"amplitude = {_amplitude}, amplitude d'excitation = {_config.excitationAmplitude}, erreur de phase moyenne {erreurPhaseMoyenne}");
+                    Console.WriteLine($"amplitude = {_amplitude}, amplitude d'excitation = {_config.excitationAmplitude}");
                     i++;
                 }
                 if (i > 200 && _runExcitation)
