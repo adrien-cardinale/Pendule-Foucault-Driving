@@ -130,13 +130,30 @@ namespace Pendule
             threadListenDriver.Join();
             threadListenPosition.Join();
             threadComputeData.Join();
-            _driver.CloseBus();
+            try
+            {
+                _driver.CloseBus();
+            }
+            catch
+            {
+                Console.WriteLine("Erreur lors de la fermeture du driver");
+            }
         }
 
         public void Start()
         { 
             _waitCenter = true;
-            _driver.Init(_excitationPeriode);
+            try
+            {
+                _driver.Init(_excitationPeriode);
+            }
+            catch (DriverErrorException e)
+            {
+                Console.WriteLine($"Erreur lors de l'initialisation du driver : {e.Message}");
+                Stop();
+                Start();
+                return;
+            }
             threadTrigerCenter = new Thread(TrigerCenter);
             _runExcitation = true;
             threadTrigerCenter.Start();
@@ -148,15 +165,34 @@ namespace Pendule
             if(_excitation)
             {
                 Console.WriteLine("Stop excitation");
-                _driver.StopExcitation();
-                _excitation = false;
+                try
+                {
+                    _driver.StopExcitation();
+                }
+                catch (DriverErrorException e)
+                {
+                    Console.WriteLine($"Erreur lors de l'arrêt de l'excitation : {e.Message}");
+                    return;
+                }
+                finally
+                {
+                    _excitation = false;
+                }
             }
             if(threadTrigerCenter != null)
                 threadTrigerCenter.Join();
         }
         public void SetSinus()
         {
-            _driver.SetSinus(_excitationPeriode);
+            try
+            {
+                _driver.SetSinus(_excitationPeriode);
+            }
+            catch (DriverErrorException e)
+            {
+                Console.WriteLine($"Erreur lors de la mise en place du sinus : {e.Message}");
+                return;
+            }
         }
         private void ListenPosition()
         {
@@ -221,11 +257,18 @@ namespace Pendule
                         Thread.Sleep((int)(_config.periode + 100));
                         if (_runExcitation)
                         {
-                            _driver.StartExcitation(_config.excitationAmplitude, _excitationPeriode);
-                            _excitation = true;
+                            try
+                            {
+                                _driver.StartExcitation(_config.excitationAmplitude, _excitationPeriode);
+                                _excitation = true;
+                                Console.WriteLine($"start Move");
+                                _waitCenter = false;
+                            }
+                            catch
+                            {
+                                Console.WriteLine("Erreur lors du démarrage de l'excitation");
+                            }
                         }
-                        Console.WriteLine($"start Move");
-                        _waitCenter = false;
                     }
                     else
                     {
@@ -263,9 +306,17 @@ namespace Pendule
                     if (_amplitude > _config.nominalAmplitude && _excitation && _runExcitation)
                     {
                         Console.WriteLine("stop Move from amplitude regulation");
-                        _driver.StopExcitation();
-                        _waitCenter = true;
-                        _excitation = false;
+                        try
+                        {
+                            _driver.StopExcitation();
+                            _excitation = false;
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Erreur lors de l'arrêt de l'excitation");
+                        }
+                        //_waitCenter = true;
+                        
                         i = 0;
                     }else if (_amplitude < _config.nominalAmplitude && !_excitation && _runExcitation)
                     {
@@ -279,9 +330,16 @@ namespace Pendule
                 {
                     Console.WriteLine("stop Move from phase regulation");
                     i = 0;
-                    _driver.StopExcitation();
-                    _excitation = false;
-                    _waitCenter = true;
+                    try
+                    {
+                        _driver.StopExcitation();
+                        _excitation = false;
+                        _waitCenter = true;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Erreur lors de l'arrêt de l'excitation");
+                    }
                 }
                 Thread.Sleep(30);
             }

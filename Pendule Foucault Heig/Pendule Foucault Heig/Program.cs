@@ -14,8 +14,6 @@ namespace pendule
         {
             const string serverPath = @"\\192.168.125.1\PenduleShare\";
 
-            //Driver regulateur = new Driver();
-            //VisionSystem cognex = new VisionSystem("192.168.125.208", 2090);
             PFControl pendule;
             try
             {

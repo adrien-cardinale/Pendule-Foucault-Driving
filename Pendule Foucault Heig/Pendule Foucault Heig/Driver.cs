@@ -55,6 +55,7 @@ namespace Pendule
             catch (DsaException exc)
             {
                 error(exc);
+                throw new DriverErrorException("Error during open bus");
             }
 
         }
@@ -70,6 +71,7 @@ namespace Pendule
             catch (DsaException exc)
             {
                 error(exc);
+                throw new DriverErrorException("Error during close bus");
             }
         }
         public void Init(double periodeExcitation)
@@ -97,6 +99,7 @@ namespace Pendule
             catch (DsaException exc)
             {
                 error(exc);
+                throw new DriverErrorException("Error during init");
             }
         }
         public void StartExcitation(double amplitude, double periodeExcitation)
@@ -110,6 +113,7 @@ namespace Pendule
             catch (DsaException exc)
             {
                 error(exc);
+                throw new DriverErrorException("Error during start excitation");
             }
         }
         public void StopExcitation()
@@ -126,6 +130,7 @@ namespace Pendule
             catch (DsaException exc)
             {
                 error(exc);
+                throw new DriverErrorException("Error during stop excitation");
             }
         }   
         public void SetSinus(double T)
@@ -208,8 +213,7 @@ namespace Pendule
                     drv.powerOff(60000);
                 drv.close();
             }
-            Console.WriteLine("Ended with Error...Press a key");
-            Console.ReadLine();
+            OpenBus();
             return;
         }
     }
