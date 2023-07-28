@@ -1,0 +1,65 @@
+# COMET special parameters
+# ISO linear units : m, m/s, m/sï¿½, A, V, s (used in case of interpolation)
+# ISO rotary units : t, t/s, t/sï¿½, A, V, s
+
+
+#include <math.h>
+#include <unistd.h>
+
+#define M_PI 3.14
+#define N 8192
+
+//homing
+void func0(void){
+	//K207.0=0;
+	RST.0; // reset error
+	PWR.0 = 1; // power on
+	IND.0; // start homing
+	WTM.0; // wait end of movement
+	MMD.0=3; // movement type predefined linear movement
+	MMC.0=0; // Concatenated movements selection disabled
+	K230.0=3; // Calculated movement profile real sine move
+	K229.0=2.0; // Calculated movement time
+	MVE.0=0.004; // move to position
+	WTM.0; // wait end of movement
+	//PWR.0 = 0;
+}
+
+//excitation move
+void func1(void){
+	MMD.0=10; // movement type look-up table
+	LTN.0=0; // look-up table index
+	K207.0=1; // LKT mode selection same starting and end point
+	KL208.0=X0.0; // amplitude of move
+	MMC.0=2; // Concatenated movements selection Continuous back and forth movement
+	MVE.0=0.0; //start move
+}
+
+//start position
+void func2(void)
+{
+	RST.0; // reset error
+	PWR.0 = 1; // power on
+	MMD.0=3; // movement type predefined linear movement
+	MMC.0=0; // Concatenated movements selection disabled
+	K230.0=3; // Calculated movement profile real sine move
+	K229.0=2.0; // Calculated movement time
+	MVE.0=0.004; // move to 4 mm
+}
+
+//stop excitation
+void func3(void){
+	MVE.0=0.0; // stop concatened move
+}
+
+
+
+
+
+
+
+
+
+
+
+
