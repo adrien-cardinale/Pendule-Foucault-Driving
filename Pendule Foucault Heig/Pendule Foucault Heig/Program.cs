@@ -35,6 +35,8 @@ namespace pendule
             Console.WriteLine("#######################");
             Console.WriteLine("1. Run");
             Console.WriteLine("2. Set sinus");
+            Console.WriteLine("3. Test Controle");
+            Console.WriteLine("4. ReloadConfig");
             Console.WriteLine("q. Quit");
             Console.WriteLine("#######################\n");
 
@@ -55,6 +57,16 @@ namespace pendule
                         Console.WriteLine("Set sinus in look-up table");
                         pendule.SetSinus();
                         Console.WriteLine("Sinus set");
+                        break;
+                    case "3":
+                        pendule.StartTest();
+                        Console.WriteLine("Press t to stop");
+                        while (Console.ReadKey(true).Key != ConsoleKey.T) { }
+                        pendule.StopTest();
+                        break;
+                    case "4":
+                        Console.WriteLine("ReloadConfig");
+                        pendule.ReloadConfig();
                         break;
                     case "q":
                         Console.WriteLine("Quit");

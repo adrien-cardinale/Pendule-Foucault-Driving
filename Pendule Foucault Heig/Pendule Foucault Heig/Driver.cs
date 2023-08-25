@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Reflection;
+using System.Diagnostics;
+using System.Runtime;
 
 namespace Pendule
 {
@@ -22,6 +24,8 @@ namespace Pendule
         private int nb_points;
         private double[] times;
         private double[] data;
+
+        private bool _run = false;
 
         public double current
         {
@@ -40,6 +44,9 @@ namespace Pendule
             }
         }
         private double _position;
+
+        public double amplitude { get; set; }
+        public double phase { get; set; }
 
         public Driver()
         {
@@ -74,10 +81,15 @@ namespace Pendule
                 throw new DriverErrorException("Error during close bus");
             }
         }
-        public void Init(double periodeExcitation)
+        public void Init(double periodeExcitation, double startPosition)
         {
             try
             {
+                int periode = drv.convertInt32FromIso(periodeExcitation / 1000, Dsa.PpkConv(204, 0));
+                drv.setRegister(DmdData.TYP_PPK, 204, 0, periode);
+                int position = drv.convertInt32FromIso(startPosition, Dsa.MonConv(6, 0));
+                drv.setRegister(DmdData.TYP_USER, 1, 0, position);
+                Thread.Sleep(500);
                 if (drv.getStatusFromDrive().isHomingDone())
                 {
                     drv.executeSequence(2); // go to start position
@@ -91,10 +103,6 @@ namespace Pendule
                     if (err != 0)
                         throw new Exception($"Error during homing error code = {drv.getErrorText}");
                 }
-                Console.WriteLine("Set periode " + periodeExcitation);
-                int periode = drv.convertInt32FromIso(periodeExcitation / 1000, Dsa.PpkConv(204, 0));
-                Console.WriteLine("Periode " + periode);
-                drv.setRegister(DmdData.TYP_PPK, 204, 0, periode);
             }
             catch (DsaException exc)
             {
@@ -132,10 +140,42 @@ namespace Pendule
                 error(exc);
                 throw new DriverErrorException("Error during stop excitation");
             }
-        }   
-        public void SetSinus(double T)
+        }
+        public void StartTestExcitation(double frequency)
         {
-            Console.WriteLine("Set sinus");
+            Console.WriteLine("Start test excitation");
+            _run = true;
+            Task.Run(() => TestExcitation(frequency));
+        }
+        private void TestExcitation(double frequency)
+        {
+            Console.WriteLine($"Test excitation {frequency}");
+            long delay = 50;
+            long x = 0;
+            Stopwatch stopwatch = new Stopwatch();
+            drv.setRegister(DmdData.TYP_USER, DmdParameters.CONCATENATED_MVT, 0, 1);
+            drv.setRegister(DmdData.TYP_PPK, 202, 0, 1);
+            long speedInc = drv.convertInt64FromIso(0.05, Dsa.KLConv(211, 0));
+            drv.setRegisterInt64(DmdData.TYP_PPK_INT64, 211, 0, speedInc);
+            long accInc = drv.convertInt64FromIso(0.05, Dsa.KLConv(212, 0));
+            drv.setRegisterInt64(DmdData.TYP_PPK_INT64, 212, 0, accInc);
+            while (_run)
+            {
+                stopwatch.Restart();
+                double y = amplitude * Math.Sin(2 * Math.PI * frequency * x/1000 + phase * Math.PI / 180);
+                x += delay;
+                Console.WriteLine($"x {x} y {y}");
+                drv.executeCommand(DmdCommand.PROFILED_MOVE, DmdData.TYP_IMMEDIATE_INT64, y, Dsa.KLConv(210, 0), true, true);
+                Thread.Sleep((int)(delay - stopwatch.ElapsedMilliseconds));
+            }
+        }
+        public void StopTestExcitation()
+        {
+            _run = false;
+        }
+        public void SetSinus(double T, double amplitude)
+        {
+            Console.WriteLine($"Set sinus T {T} amplitude {amplitude}");
             int N = 8191;
             double frequency = 1 / T;
             double[] t = new double[N+1];
@@ -146,12 +186,21 @@ namespace Pendule
             }
             for(int i = 0; i <= N; i++)
             {
-                float value = (float)(Math.Sin(2 * Math.PI * frequency * t[i]));
-                Console.WriteLine($"value {value}");
-                drv.setRegisterFloat64(DmdData.TYP_LKT_FLOAT64, i, 0, value);
-
+                float value = (float)(amplitude*Math.Sin(2 * Math.PI * frequency * t[i]));
+                //Console.WriteLine($"value {value}");
+                try
+                {
+                    drv.setRegisterFloat64(DmdData.TYP_LKT_FLOAT64, i, 0, value);
+                }
+                catch (DsaException exc)
+                {
+                    //error(exc);
+                    //throw new DriverErrorException("Error during set sinus");
+                    Console.WriteLine($"Error during set sinus {exc.Message}");
+                }
+                
             }
-            Console.WriteLine("Sinus set");
+            Console.WriteLine("Set sinus");
         }
         public void Acquisition()
         {

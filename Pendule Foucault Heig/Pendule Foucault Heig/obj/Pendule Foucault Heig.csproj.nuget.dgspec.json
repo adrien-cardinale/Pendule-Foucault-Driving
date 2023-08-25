@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Pendule\\Source\\Repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj": {}
+    "C:\\Users\\Pendule\\source\\repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Pendule\\Source\\Repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj": {
+    "C:\\Users\\Pendule\\source\\repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Pendule\\Source\\Repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj",
+        "projectUniqueName": "C:\\Users\\Pendule\\source\\repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj",
         "projectName": "Pendule Foucault Heig",
-        "projectPath": "C:\\Users\\Pendule\\Source\\Repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj",
+        "projectPath": "C:\\Users\\Pendule\\source\\repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\Pendule Foucault Heig.csproj",
         "packagesPath": "C:\\Users\\Pendule\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Pendule\\Source\\Repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\obj\\",
+        "outputPath": "C:\\Users\\Pendule\\source\\repos\\Pendule-Foucault-Driving\\Pendule Foucault Heig\\Pendule Foucault Heig\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
