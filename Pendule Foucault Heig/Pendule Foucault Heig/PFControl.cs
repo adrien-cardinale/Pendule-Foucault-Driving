@@ -38,8 +38,10 @@ namespace Pendule
                 KpAmplitude = pFConfig.KpAmplitude;
                 offsetDetection = pFConfig.offsetDetection;
                 detectionRadius = pFConfig.detectionRadius;
+                offsetAmplitudeFactor = pFConfig.offsetAmplitudeFactor;
                 visionIP = pFConfig.visionIP;
                 visionPort = pFConfig.visionPort;
+                driverIP = pFConfig.driverIP;
             }
         }
         public PFConfig()
@@ -54,6 +56,7 @@ namespace Pendule
             KpAmplitude = 0;
             offsetDetection = 0;
             detectionRadius = 0;
+            offsetAmplitudeFactor = 0;
         }   
 
         public Dictionary<string, int> center 
@@ -88,11 +91,19 @@ namespace Pendule
         {
             get; set;
         }
+        public double offsetAmplitudeFactor
+        {
+            get; set;
+        }
         public string visionIP
         {
             get; set;
         }
         public int visionPort
+        {
+            get; set;
+        }
+        public string driverIP
         {
             get; set;
         }
@@ -105,13 +116,19 @@ namespace Pendule
         private PFConfig _config;
 
         private bool _run = true;
+        public bool RunExcitation
+        {
+            get
+            {
+                return _runExcitation;
+            }
+        }
         private bool _runExcitation = false;
 
         private double _amplitude = 0;
 
         private double _excitationPeriode;
 
-        private bool _waitCenter = true;
         private bool _excitation = false;
 
         private string _serverPath;
@@ -136,14 +153,14 @@ namespace Pendule
         Thread ? threadComputeData;
         Thread ? threadListenPosition;
         Thread ? threadListenDriver;
-        Thread ? threadTest;
+        Thread ? threadRegulation;
 
         public PFControl(string serverPath) 
         {
             _serverPath = serverPath;
             _config = new PFConfig((string)(_serverPath + "configPF.json"));
             _cognex = new VisionSystem(_config.visionIP, _config.visionPort);
-            _driver = new Driver();
+            _driver = new Driver(_config.driverIP);
 
             _excitationPeriode = _config.periode / 2;
             threadComputeData = new Thread(ComputeData);
@@ -161,8 +178,8 @@ namespace Pendule
             _excitationPeriode = _config.periode / 2;
             if (_runExcitation)
             {
-                StopTest();
-                StartTest();
+                Stop();
+                Start();
             }
             
         }
@@ -186,7 +203,6 @@ namespace Pendule
 
         public void Start()
         { 
-            _waitCenter = true;
             try
             {
                 _driver.Init(_excitationPeriode, _config.startPosition);
@@ -198,9 +214,9 @@ namespace Pendule
                 Start();
                 return;
             }
-            threadTrigerCenter = new Thread(TrigerCenter);
+            threadRegulation = new Thread(Regulation);
             _runExcitation = true;
-            threadTrigerCenter.Start();
+            threadRegulation.Start();
         }
 
         public void Stop()
@@ -223,8 +239,8 @@ namespace Pendule
                     _excitation = false;
                 }
             }
-            if(threadTrigerCenter != null)
-                threadTrigerCenter.Join();
+            if(threadRegulation != null)
+                threadRegulation.Join();
         }
         public void SetSinus()
         {
@@ -254,6 +270,7 @@ namespace Pendule
                 {
                     Console.WriteLine($"Erreur lors de l'écriture du fichier{fileName} : {e.Message}");
                 }
+                Thread.Sleep(30);
             }
         }
         
@@ -287,49 +304,15 @@ namespace Pendule
                 {
                     Console.WriteLine($"Erreur lors de l'écriture du fichier{fileName} : {e.Message}");
                 }
+                Thread.Sleep(30);
             }
-        }
-
-        public void StartTest()
-        {
-            _driver.Init(_excitationPeriode, _config.startPosition);
-            threadTest = new Thread(Regulation);
-            _runExcitation = true;
-            threadTest.Start();
-        }
-        public void StopTest()
-        {
-            _runExcitation = false;
-            if (_excitation)
-            {
-                Console.WriteLine("Stop excitation");
-                try
-                {
-                    _driver.StopExcitation();
-                }
-                catch (DriverErrorException e)
-                {
-                    Console.WriteLine($"Erreur lors de l'arrêt de l'excitation : {e.Message}");
-                    return;
-                }
-                finally
-                {
-                    _excitation = false;
-                }
-            }
-            if (threadTrigerCenter != null)
-                threadTrigerCenter.Join();
-            
-            if(threadTest != null)
-                threadTest.Join();
         }
 
         private void Regulation()
         {
-            double aOld = 10;
+            double aOld = 0;
             int i = 0;
             List<double> phaseErrorList = new List<double>();
-            //_driver.amplitude = _config.excitationAmplitude;
             Console.WriteLine("Start regulation");
             while (_runExcitation)
             {
@@ -345,8 +328,6 @@ namespace Pendule
                             _driver.StartExcitation(_config.excitationAmplitude, _excitationPeriode);
                             _excitation = true;
                             Console.WriteLine($"start Move");
-
-                            _waitCenter = false;
                         }
                         catch
                         {
@@ -362,9 +343,9 @@ namespace Pendule
                 phaseErrorList.Add(_phaseError);
 
                 //Console.WriteLine($"Amplitude error: {_amplitudeError}");
-                if (i >= 10)
+                if (i >= 5)
                 {
-                    double a = 0.85 + _amplitudeError * _config.KpAmplitude;
+                    double a = _config.offsetAmplitudeFactor + _amplitudeError * _config.KpAmplitude;
                     if (a > 1)
                         a = 1;
                     if (a < 0)
@@ -397,44 +378,8 @@ namespace Pendule
             {
 
             }
-            _phaseError = _driver.position - 0.004;
+            _phaseError = _driver.position - _config.startPosition;
             return;
-        }
-
-
-        private void TrigerCenter()
-        {
-            while(_runExcitation)
-            {
-                if (Math.Sqrt(Math.Pow(_cognex.posX - _config.center["x"], 2) + Math.Pow(_cognex.posY - _config.center["y"], 2)) < _config.detectionRadius && _amplitude != 0)
-                {
-                    if (_waitCenter)
-                    {
-                        //Thread.Sleep((int)(_config.periode + _offsetDetection));
-                        if (_runExcitation)
-                        {
-                            try
-                            {
-                                _driver.StartExcitation(_config.excitationAmplitude, _excitationPeriode);
-                                _excitation = true;
-                                Console.WriteLine($"start Move");
-
-                                _waitCenter = false;
-                            }
-                            catch
-                            {
-                                Console.WriteLine("Erreur lors du démarrage de l'excitation");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Thread.Sleep(2000);
-                    }
-
-                }
-            }
-            
         }
         
         private void ComputeData()
@@ -459,46 +404,11 @@ namespace Pendule
                     _xList.Clear();
                     _yList.Clear();
                     _amplitude = Math.Sqrt(Math.Pow(xMax - _config.center["x"], 2) + Math.Pow(yMax - _config.center["y"], 2));
-                    //if (_amplitude > _config.nominalAmplitude && _excitation && _runExcitation)
-                    //{
-                    //    Console.WriteLine("stop Move from amplitude regulation");
-                    //    try
-                    //    {
-                    //        _driver.StopExcitation();
-                    //        _excitation = false;
-                    //    }
-                    //    catch
-                    //    {
-                    //        Console.WriteLine("Erreur lors de l'arrêt de l'excitation");
-                    //    }
-
-                    //    i = 0;
-                    //}
-                    //else if (_amplitude < _config.nominalAmplitude && !_excitation && _runExcitation)
-                    //{
-                    //    _waitCenter = true;
-                    //    i = 0;
-                    //}
                     Console.WriteLine($"amplitude = {_amplitude}, amplitude d'excitation = {_config.excitationAmplitude}");
                     Console.WriteLine($"phase error = {_phaseError * 1000}");
                     Console.WriteLine($"amplitude error = {_amplitudeError}");
                     i++;
                 }
-                //if (i > 100 && _runExcitation)
-                //{
-                //    Console.WriteLine("stop Move from phase regulation");
-                //    i = 0;
-                //    try
-                //    {
-                //        _driver.StopExcitation();
-                //        _excitation = false;
-                //        _waitCenter = true;
-                //    }
-                //    catch
-                //    {
-                //        Console.WriteLine("Erreur lors de l'arrêt de l'excitation");
-                //    }
-                //}
                 Thread.Sleep(30);
             }
         }

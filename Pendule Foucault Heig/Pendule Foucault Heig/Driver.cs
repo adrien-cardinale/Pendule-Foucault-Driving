@@ -24,6 +24,7 @@ namespace Pendule
         private int nb_points;
         private double[] times;
         private double[] data;
+        private string _ip;
 
         private bool _run = false;
 
@@ -48,16 +49,17 @@ namespace Pendule
         public double amplitude { get; set; }
         public double phase { get; set; }
 
-        public Driver()
+        public Driver(string ip)
         {
             drv = new DsaDrive();
+            _ip = ip;
         }
         public void OpenBus()
         {
             try
             {
                 Console.WriteLine("Open controller");
-                drv.open("etb:etn://192.168.125.207:0");
+                drv.open("etb:etn://" + _ip + ":0");
             }
             catch (DsaException exc)
             {
@@ -85,6 +87,11 @@ namespace Pendule
         {
             try
             {
+                if (drv.getStatus().isMoving())
+                {
+                    drv.quickStop(Dsa.QS_PROGRAMMED_DEC, Dsa.QS_BYPASS | Dsa.QS_STOP_SEQUENCE);
+                    drv.waitMovement(60000);
+                }
                 int periode = drv.convertInt32FromIso(periodeExcitation / 1000, Dsa.PpkConv(204, 0));
                 drv.setRegister(DmdData.TYP_PPK, 204, 0, periode);
                 int position = drv.convertInt32FromIso(startPosition, Dsa.MonConv(6, 0));
@@ -140,38 +147,6 @@ namespace Pendule
                 error(exc);
                 throw new DriverErrorException("Error during stop excitation");
             }
-        }
-        public void StartTestExcitation(double frequency)
-        {
-            Console.WriteLine("Start test excitation");
-            _run = true;
-            Task.Run(() => TestExcitation(frequency));
-        }
-        private void TestExcitation(double frequency)
-        {
-            Console.WriteLine($"Test excitation {frequency}");
-            long delay = 50;
-            long x = 0;
-            Stopwatch stopwatch = new Stopwatch();
-            drv.setRegister(DmdData.TYP_USER, DmdParameters.CONCATENATED_MVT, 0, 1);
-            drv.setRegister(DmdData.TYP_PPK, 202, 0, 1);
-            long speedInc = drv.convertInt64FromIso(0.05, Dsa.KLConv(211, 0));
-            drv.setRegisterInt64(DmdData.TYP_PPK_INT64, 211, 0, speedInc);
-            long accInc = drv.convertInt64FromIso(0.05, Dsa.KLConv(212, 0));
-            drv.setRegisterInt64(DmdData.TYP_PPK_INT64, 212, 0, accInc);
-            while (_run)
-            {
-                stopwatch.Restart();
-                double y = amplitude * Math.Sin(2 * Math.PI * frequency * x/1000 + phase * Math.PI / 180);
-                x += delay;
-                Console.WriteLine($"x {x} y {y}");
-                drv.executeCommand(DmdCommand.PROFILED_MOVE, DmdData.TYP_IMMEDIATE_INT64, y, Dsa.KLConv(210, 0), true, true);
-                Thread.Sleep((int)(delay - stopwatch.ElapsedMilliseconds));
-            }
-        }
-        public void StopTestExcitation()
-        {
-            _run = false;
         }
         public void SetSinus(double T, double amplitude)
         {
