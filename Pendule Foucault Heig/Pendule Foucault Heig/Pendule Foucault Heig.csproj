@@ -9,7 +9,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove=".env" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include=".env">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.3" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Websocket.Client" Version="5.1.1" />
   </ItemGroup>
 
   <ItemGroup>

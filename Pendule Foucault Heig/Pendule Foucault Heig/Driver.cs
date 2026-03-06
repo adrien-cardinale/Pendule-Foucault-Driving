@@ -46,6 +46,15 @@ namespace Pendule
         }
         private double _position;
 
+        public double i2t
+        {
+            get
+            {
+                return _i2t;
+            }
+        }
+        private double _i2t;
+
         public double amplitude { get; set; }
         public double phase { get; set; }
 
@@ -213,10 +222,12 @@ namespace Pendule
                 _position = drv.convertInt32ToIso(positionIncr, Dsa.MonConv(7, 0));
                 float currentIncr = drv.getRegisterFloat32(DmdData.TYP_MONITOR_FLOAT32, 31, 0, Dsa.GET_CURRENT);
                 _current = drv.convertFloat32ToIso(currentIncr, Dsa.RegConv(DmdData.TYP_MONITOR_FLOAT32, 31, 0));
+                float i2tIncr = drv.getRegisterFloat32(DmdData.TYP_MONITOR_FLOAT32, 67, 0, Dsa.GET_CURRENT);
+                _i2t = drv.convertFloat32ToIso(i2tIncr, Dsa.RegConv(DmdData.TYP_MONITOR_FLOAT32, 67, 0));
                 int error = drv.getErrorCode();
                 if (error != 0)
                     throw new DriverErrorException($"Driver error {error}, {drv.getErrorText(error)}");
-                Thread.Sleep(30);
+                Thread.Sleep(50);
             }
             catch(DsaException exc)
             {

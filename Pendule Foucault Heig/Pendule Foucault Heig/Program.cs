@@ -12,7 +12,7 @@ namespace pendule
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
 
             string _ip = "192.168.125.208";
@@ -25,6 +25,7 @@ namespace pendule
             try
             {
                 pendule = new PFControl(serverPath);
+                await pendule.Init();
             }
             catch (Exception e)
             {
@@ -68,57 +69,6 @@ namespace pendule
                         bool runExcitation = pendule.RunExcitation;
                         byte[] message = Encoding.ASCII.GetBytes(runExcitation.ToString());
                         stream.Write(message, 0, message.Length);
-                        break;
-                }
-            }
-
-
-
-            Console.WriteLine("#######################");
-            Console.WriteLine("# Pendule de Foucault #");
-            Console.WriteLine("#######################");
-            Console.WriteLine("1. Run");
-            Console.WriteLine("2. Set sinus");
-            Console.WriteLine("3. Test Controle");
-            Console.WriteLine("4. ReloadConfig");
-            Console.WriteLine("q. Quit");
-            Console.WriteLine("#######################\n");
-
-
-            for (; ; )
-            {
-                string ? input = Console.ReadLine();
-                switch (input)
-                {
-                    case "1":
-                        Console.WriteLine("Run");
-                        pendule.Start();
-                        Console.WriteLine("Press t to stop");
-                        while (Console.ReadKey(true).Key != ConsoleKey.T){}
-                        pendule.Stop();
-                        break; 
-                    case "2":
-                        Console.WriteLine("Set sinus in look-up table");
-                        pendule.SetSinus();
-                        Console.WriteLine("Sinus set");
-                        break;
-                    case "3":
-                        //pendule.StartTest();
-                        Console.WriteLine("Press t to stop");
-                        while (Console.ReadKey(true).Key != ConsoleKey.T) { }
-                        //pendule.StopTest();
-                        break;
-                    case "4":
-                        Console.WriteLine("ReloadConfig");
-                        pendule.ReloadConfig();
-                        break;
-                    case "q":
-                        Console.WriteLine("Quit");
-                        pendule.Close();
-                        Environment.Exit(0);
-                        break;
-                    default:
-                        Console.WriteLine("Unknown command");
                         break;
                 }
             }

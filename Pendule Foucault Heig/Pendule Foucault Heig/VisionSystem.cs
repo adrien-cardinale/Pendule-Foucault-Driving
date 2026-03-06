@@ -32,15 +32,16 @@ namespace Pendule
         private string _ip;
         private int _port;
         private bool _run = true;
-        public VisionSystem(string ip, int port)
+        public delegate void ListenPositionCallBack(double x, double y);
+        public VisionSystem(string ip, int port, ListenPositionCallBack callBack)
         {
             _ip = ip;
             _port = port;
-            Thread threadReadData = new Thread(new ThreadStart(ReadData));
+            Thread threadReadData = new Thread(() => ReadData(callBack));
             threadReadData.Start();
 
         }
-        private void ReadData()
+        private void ReadData(ListenPositionCallBack callback)
         {
             TcpListener _server = new TcpListener(IPAddress.Parse(_ip), _port);
             try
@@ -64,6 +65,7 @@ namespace Pendule
                     string[] values = chaine.Split(',');
                     double.TryParse(values[0], out _posX);
                     double.TryParse(values[1], out _posY);
+                    callback(_posX, _posY);
                 }
                 catch (System.IO.IOException e)
                 {

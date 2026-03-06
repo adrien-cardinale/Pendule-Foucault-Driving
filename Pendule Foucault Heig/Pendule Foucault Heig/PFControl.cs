@@ -10,6 +10,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Timers;
+using System.Net.Sockets;
+using System.Net;
+using System.ComponentModel;
+using Microsoft.Extensions.Configuration;
 
 namespace Pendule
 {
@@ -114,6 +119,8 @@ namespace Pendule
         private VisionSystem _cognex;
         private Driver _driver;
         private PFConfig _config;
+        private MqttLogger _mqttLogger;
+
 
         private bool _run = true;
         public bool RunExcitation
@@ -147,29 +154,56 @@ namespace Pendule
         private List<long> _periodeMeasured = new List<long>();
 
 
-
-
         Thread ? threadTrigerCenter;
         Thread ? threadComputeData;
-        Thread ? threadListenPosition;
+        //Thread ? threadListenPosition;
         Thread ? threadListenDriver;
         Thread ? threadRegulation;
 
         public PFControl(string serverPath) 
         {
             _serverPath = serverPath;
+
+            DotNetEnv.Env.Load();
+            var config = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
+            string host = config["Mqtt:Host"] ?? throw new InvalidOperationException("Variable 'Mqtt:Host' manquante");
+            string username = config["Mqtt:Username"] ?? throw new InvalidOperationException("Variable 'Mqtt:Username' manquante");
+            string password = config["Mqtt:Password"] ?? throw new InvalidOperationException("Variable 'Mqtt:Password' manquante");
+            int port = int.TryParse(config["Mqtt:Port"], out var p) ? p : 1883;
+
+            Console.WriteLine($"Host     : '{config["Mqtt:Host"]}'");
+            Console.WriteLine($"Port     : '{config["Mqtt:Port"]}'");
+            Console.WriteLine($"Username : '{config["Mqtt:Username"]}'");
+            Console.WriteLine($"Password : '{config["Mqtt:Password"]}'");
+
+            _mqttLogger = new MqttLogger(
+                broker: config["Mqtt:Host"]!,
+                port: int.Parse(config["Mqtt:Port"]!),
+                topic: "foucault",
+                username: config["Mqtt:Username"]!,
+                password: config["Mqtt:Password"]!
+            );
+
             _config = new PFConfig((string)(_serverPath + "configPF.json"));
-            _cognex = new VisionSystem(_config.visionIP, _config.visionPort);
+            _cognex = new VisionSystem(_config.visionIP, _config.visionPort, (VisionSystem.ListenPositionCallBack)ListenPosition);
             _driver = new Driver(_config.driverIP);
 
             _excitationPeriode = _config.periode / 2;
             threadComputeData = new Thread(ComputeData);
-            threadListenPosition = new Thread(ListenPosition);
+            //threadListenPosition = new Thread(ListenPosition);
             threadListenDriver = new Thread(ListenDriver);
             threadComputeData.Start();
-            threadListenPosition.Start();
+            //threadListenPosition.Start();
             threadListenDriver.Start();
             _driver.OpenBus();
+        }
+
+        public async Task Init()
+        {
+            await _mqttLogger.ConnectAsync();
         }
 
         public void ReloadConfig()
@@ -181,7 +215,6 @@ namespace Pendule
                 Stop();
                 Start();
             }
-            
         }
 
         public void Close()
@@ -189,7 +222,7 @@ namespace Pendule
             Stop();
             _run = false;
             threadListenDriver.Join();
-            threadListenPosition.Join();
+            //threadListenPosition.Join();
             threadComputeData.Join();
             try
             {
@@ -254,29 +287,37 @@ namespace Pendule
                 return;
             }
         }
-        private void ListenPosition()
+        private void ListenPosition(double x, double y)
         {
-            while (_run)
+            string fileName = "pFposition-" + DateTime.Now.ToString("yyyy-MM-dd");
+            try
             {
-                string fileName = "pFposition-" + DateTime.Now.ToString("yyyy-MM-dd");
-                try
+                using (StreamWriter sw = File.AppendText(_serverPath + fileName))
                 {
-                    using (StreamWriter sw = File.AppendText(_serverPath + fileName))
-                    {
-                        sw.WriteLine("{0}{1:0000}{2:0000}", DateTime.Now.ToString("HHmmssfff"), _cognex.posX, _cognex.posY);
-                    }
+                    sw.WriteLine("{0}{1:0000}{2:0000}", DateTime.Now.ToString("HHmmssfff"), x, y);
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Erreur lors de l'écriture du fichier{fileName} : {e.Message}");
-                }
-                Thread.Sleep(30);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Erreur lors de l'écriture du fichier{fileName} : {e.Message}");
+            }
+            try
+            {
+                if (_mqttLogger.IsConnected())
+                {
+                    _mqttLogger.Publish($"{{\"timestamp\":{DateTime.Now.ToString("HH:mm:ss:ffff")}, \"position_x\":{x}, \"position_y\":{y}}}", "data/position");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Erreur lors de la publication MQTT {e.Message}");
+            }
+            Thread.Sleep(5);
         }
         
         private void ListenDriver()
         {
-            while (_run)
+            while (true)
             {
                 try
                 {
@@ -285,7 +326,7 @@ namespace Pendule
                 catch (DriverErrorException e)
                 {
                     Console.WriteLine($"Erreur lors de la lecture du driver : {e.Message}");
-                    if(_runExcitation)
+                    if (_runExcitation)
                     {
                         Stop();
                         Start();
@@ -297,14 +338,24 @@ namespace Pendule
                     using (StreamWriter sw = File.AppendText(_serverPath + fileName))
                     {
                         sw.WriteLine("{0},{1},{2}", DateTime.Now.ToString("HHmmssfff"), _driver.current, _driver.position);
-                        Thread.Sleep(30);
+                        Thread.Sleep(50);
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Erreur lors de l'écriture du fichier{fileName} : {e.Message}");
                 }
-                Thread.Sleep(30);
+                try
+                {
+                    if (_mqttLogger.IsConnected())
+                    {
+                        _mqttLogger.Publish($"{{\"timestamp\":{DateTime.Now.ToString("HH:mm:ss:ffff")}, \"current\":{_driver.current}, \"position\":{_driver.position}}}", "data/driver");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Erreur lors de la publication MQTT {e.Message}");
+                }
             }
         }
 
@@ -357,7 +408,7 @@ namespace Pendule
                         _driver.SetSinus(_excitationPeriode, a);
                         aOld = a;
                     }
-                    if (phaseErrorList.Average() > 0.002 | phaseErrorList.Average() < -0.002)
+                    if (phaseErrorList.Average() > 0.005 | phaseErrorList.Average() < -0.005)
                     {
                         _driver.StopExcitation();
                         _excitation = false;
@@ -407,6 +458,17 @@ namespace Pendule
                     Console.WriteLine($"amplitude = {_amplitude}, amplitude d'excitation = {_config.excitationAmplitude}");
                     Console.WriteLine($"phase error = {_phaseError * 1000}");
                     Console.WriteLine($"amplitude error = {_amplitudeError}");
+                    try
+                    {
+                        if (_mqttLogger.IsConnected())
+                        {
+                            _mqttLogger.Publish($"{{\"timestamp\":{DateTime.Now.ToString("HH:mm:ss")}, \"amplitude\":{_amplitude}}}", "data/amplitude");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Erreur lors de la publication MQTT {e.Message}");
+                    }
                     i++;
                 }
                 Thread.Sleep(30);

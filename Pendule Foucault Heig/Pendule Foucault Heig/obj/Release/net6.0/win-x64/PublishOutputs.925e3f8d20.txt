@@ -1,0 +1,2 @@
+C:\Users\Pendule\source\repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Release\net6.0\win-x64\publish\Pendule Foucault Heig.pdb
+C:\Users\Pendule\source\repos\Pendule-Foucault-Driving\Pendule Foucault Heig\Pendule Foucault Heig\bin\Release\net6.0\win-x64\publish\Pendule Foucault Heig.exe
